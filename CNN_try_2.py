@@ -699,28 +699,6 @@ class CNN():
                     layer.delta_biases += layer.delta
             else:
                 nx_layer = self.layers[i+1]
-                """
-                    
-                    if (type(layer).__name__ == 'FFL' or type(nx_layer).__name__ == 'FFL'):
-                        layer.error = np.dot(nx_layer.weights, nx_layer.delta)
-                        layer.delta = layer.error * layer.activation_dfn(layer.out)
-
-                        if type(layer).__name__ == "Flatten":
-                            layer.delta = layer.delta.reshape(layer.input_shape)
-
-
-                    if type(layer).__name__ == "Dropout":
-                        if type(nx_layer).__name__ != "Conv2d":
-                            layer.error = np.dot(nx_layer.weights, nx_layer.delta)
-                            layer.delta = layer.error * layer.activation_dfn(layer.out)
-                        else:
-                            layer.delta = nx_layer.delta
-                    if type(layer).__name__ == "Conv2d":
-                        self.backpropagate_conv2d(layer=layer, nx_layer=nx_layer)
-                    if type(layer).__name__ == "Pool2d":
-                        self.backpropagate_pool2d(layer=layer, nx_layer=nx_layer)
-                """
-                #print(layer.name)
                 layer.backpropagate(nx_layer)
             if update:
                 layer.delta_weights /= self.batch_size
@@ -857,8 +835,6 @@ class Optimizer:
                 else:
                     l.pdelta_weights = 0
                     l.pdelta_biases = 0
-                    #l.delta_weights = 0
-                    #l.delta_biases = 0
     def iterative(self, layers, learning_rate=0.01, beta=0, training=True):
         for l in layers:
             if l.parameters !=0:
@@ -866,7 +842,6 @@ class Optimizer:
                 l.biases -= learning_rate * l.delta_biases
     def momentum(self, layers, learning_rate=0.1, beta1=0.9, weight_decay=0.0005, nesterov=True, training=True):
         learning_rate = self.learning_rate
-        #beta1 = 1 - self.learning_rate
         for l in layers:
             if l.parameters !=0:
                 if training:
@@ -1106,7 +1081,7 @@ plt.imshow(cout.reshape(28, 28))
 plt.show()
 '''
 m = CNN()
-m.add(Conv2d(input_shape = (28, 28, 1), filters = 6, padding=None, kernel_size=(5, 5), activation="tanh"))
+m.add(Conv2d(input_shape = (28, 28, 1), filters = 6, padding="same", kernel_size=(5, 5), activation="tanh"))
 m.add(Pool2d(kernel_size=(2, 2), stride=2))
 m.add(Conv2d(filters=16, kernel_size=(5, 5), padding=None, activation="tanh"))
 m.add(Pool2d(kernel_size=(2, 2), stride=2))
@@ -1116,11 +1091,11 @@ m.add(FFL(neurons = 100, activation = "tanh"))
 m.add(Dropout(0.1))
 
 m.add(FFL(neurons = 10, activation='softmax'))
-m.compile_model(lr=0.006, opt="sgd", loss="cse")
+m.compile_model(lr=0.3, opt="sgd", loss="cse")
 m.summary()
-m.train(x[:3000], y[:3000], epochs=10, batch_size=30, val_x=xt[:1000], val_y=yt[:1000])
+m.train(x[:3000], y[:3000], epochs=10, batch_size=30, val_x=xt[:200], val_y=yt[:200])
 m.visualize()
 m.save_model()
-load_model()
-m.summary()
-print(m.predict(x[10])) 
+#load_model()
+#m.summary()
+#print(m.predict(x[10])) 
